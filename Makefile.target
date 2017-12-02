@@ -5,7 +5,7 @@ include $(MAKER_ROOT)/Makefile.env
 
 LOCAL_CFLAGS += -DALPACA
 
-ALPACA_LIB = $(ALPACA_ROOT)/LLVM/build/src/libAlpacaPass.so
+ALPACA_LIB = $(ALPACA_ROOT)/LLVM/bld/src/libAlpacaPass.so
 
 %.alpaca.bc : %.bc
 	$(OPT) -debug -stats -load $(ALPACA_LIB) \
