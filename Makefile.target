@@ -19,6 +19,9 @@ override DEPS += \
 
 DEP_ROOT_libalpaca = $(ALPACA_ROOT)/AlpacaRuntime
 
+# Build with GCC, hence can't add to DEPS
+include $(LIB_ROOT)/libmspbuiltins/bld/Makefile.target
+
 override CFLAGS += $(LOCAL_CFLAGS) \
 
 include $(MAKER_ROOT)/Makefile.clang
