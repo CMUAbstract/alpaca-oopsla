@@ -1,6 +1,6 @@
 #include <stdarg.h>
 #include <string.h>
-#include <libio/log.h>
+#include <libio/console.h>
 #include <msp430.h>
 
 #ifndef LIBCHAIN_ENABLE_DIAGNOSTICS
