@@ -6,22 +6,13 @@
 #include <libmsp/mem.h>
 
 typedef void (task_func_t)(void);
-typedef unsigned task_idx_t;
-
-/** @brief Task */
-typedef struct {
-	/** @brief function address */
-	task_func_t *func;
-	/** @brief index (only used for showing progress) */
-	task_idx_t idx;
-} task_t;
 
 /** @brief Execution context */
 typedef struct _context_t {
 	/** @brief current running task */
-	task_t *task;
+	task_func_t *task;
 	/** @brief indicate whether to jump to commit stage on power failure*/
-	uint8_t needCommit;
+	unsigned numRollback = 0;
 } context_t;
 
 extern uint8_t* data_src[];
@@ -31,7 +22,6 @@ extern uint8_t** data_src_base;
 extern uint8_t** data_dest_base;
 extern unsigned* data_size_base;
 extern volatile unsigned _numBoots;
-extern volatile unsigned num_dirty_gv;
 extern context_t * volatile curctx;
 /** @brief LLVM generated function that clears all isDirty_ array */
 extern void clear_isDirty();
@@ -42,12 +32,7 @@ extern void clear_isDirty();
  */
 extern void init();
 
-void task_prologue();
-void transition_to(task_t *task);
-void write_to_gbuf(uint8_t *data_src, uint8_t *data_dest, size_t var_size); 
-
-/** @brief Internal macro for constructing name of task symbol */
-#define TASK_SYM_NAME(func) _task_ ## func
+void log_backup(uint8_t *data_src, uint8_t *data_dest, size_t var_size);
 
 /** @brief Declare a task
  *
@@ -55,26 +40,20 @@ void write_to_gbuf(uint8_t *data_src, uint8_t *data_dest, size_t var_size);
  *  @param func     Pointer to task function
  *
  */
-#define TASK(idx, func) \
-	void func(); \
-__nv task_t TASK_SYM_NAME(func) = { func, idx }; \
+#define TASK(func) \
+	void func();
 
-/** @brief Macro for getting address of task */
-#define TASK_REF(func) &TASK_SYM_NAME(func)
+#define TRANSITION_TO(next_task) \
+	context_t *next_ctx;\
+	next_ctx = (curctx == &context_0 ? &context_1 : &context_0);\
+	next_ctx->task = &next_task;\
+	next_ctx->numRollback = 0;\
+	curctx = next_ctx;\
+	return;
 
-/** @brief First task to run when the application starts
- *  @details Symbol is defined by the ENTRY_TASK macro.
- *           This is not wrapped into a delaration macro, because applications
- *           are not meant to declare tasks -- internal only.
- *
- *  TODO: An alternative would be to have a macro that defines
- *        the curtask symbol and initializes it to the entry task. The
- *        application would be required to have a definition using that macro.
- *        An advantage is that the names of the tasks in the application are
- *        not constrained, and the whole thing is less magical when reading app
- *        code, but slightly more verbose.
- */
-extern task_t TASK_SYM_NAME(_entry_task);
+// for compatibility
+#define TASK_REF(task) \
+	*task
 
 /** @brief Declare the first task of the application
  *  @details This macro defines a function with a special name that is
@@ -88,8 +67,7 @@ extern task_t TASK_SYM_NAME(_entry_task);
  *           of the library.
  */
 #define ENTRY_TASK(task) \
-	TASK(0, _entry_task) \
-void _entry_task() { TRANSITION_TO(task); }
+	task_func_t* _entry_task = &task;
 
 /** @brief Init function prototype
  *  @details We rely on the special name of this symbol to initialize the
@@ -101,7 +79,8 @@ void _init();
 /** @brief Declare the function to be called on each boot
  *  @details The same notes apply as for entry task.
  */
-#define INIT_FUNC(func) void _init() { func(); }
+#define INIT_FUNC(func) \
+	task_func_t* _init = &func;
 
 /**
  *  @brief way to simply rename vars. I don't need it actually.
@@ -123,8 +102,4 @@ void _init();
 #define GV1(type, ...) _global_ ## type
 #define GV2(type, i) _global_ ## type[i]
 
-/** @brief Transfer control to the given task
- *  @param task     Name of the task function
- *  */
-#define TRANSITION_TO(task) transition_to(TASK_REF(task))
 #endif // ALPACA_H

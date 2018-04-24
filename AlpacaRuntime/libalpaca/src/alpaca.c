@@ -26,10 +26,6 @@ __nv uint8_t** data_dest_base = &data_dest;
 __nv unsigned* data_size_base = &data_size;
 
 /**
- * @brief var to iterate over dirtylist
- */
-__nv volatile unsigned gv_index=0;
-/**
  * @brief len of dirtylist
  */
 __nv volatile unsigned num_dirty_gv=0;
@@ -42,8 +38,8 @@ __nv context_t context_1 = {0};
  * @brief double buffered context
  */
 __nv context_t context_0 = {
-	.task = TASK_REF(_entry_task),
-	.needCommit = 0,
+	.task = _entry_task,
+	.numRollback = 0,
 };
 /**
  * @brief current context
@@ -66,20 +62,13 @@ void task_prologue()
 	}
 	++_numBoots;
 	// commit if needed
-	if (curctx->needCommit) {
-		while (gv_index < num_dirty_gv) {
-			uint8_t* w_data_dest = *(data_dest_base + gv_index);
-			uint8_t* w_data_src= *(data_src_base + gv_index);
-			unsigned w_data_size = *(data_size_base + gv_index);
-			memcpy(w_data_dest, w_data_src, w_data_size);
-			++gv_index;
-		}
-		num_dirty_gv = 0;
-		gv_index = 0;
-		curctx->needCommit = 0;
-	}
-	else {
-		num_dirty_gv=0;
+	while (curctx->numRollback) {
+		unsigned rollBackIdx = curctx->numRollback - 1;
+		uint8_t* w_data_dest = *(data_dest_base + rollbackIdx);
+		uint8_t* w_data_src= *(data_src_base + rollbackIdx);
+		unsigned w_data_size = *(data_size_base + rollbackIdx);
+		memcpy(w_data_dest, w_data_src, w_data_size);
+		curctx->numRollback--;
 	}
 }
 
@@ -89,40 +78,41 @@ void task_prologue()
  *          This function does not return.
  *
  */
-void transition_to(task_t *next_task)
-{
-	// double-buffered update to deal with power failure
-	context_t *next_ctx;
-	next_ctx = (curctx == &context_0 ? &context_1 : &context_0 );
-	next_ctx->task = next_task;
-	next_ctx->needCommit = 1;
-
-	// atomic update of curctx
-	curctx = next_ctx;
-
-	// fire task prologue
-	task_prologue();
-	// jump to next tast
-	__asm__ volatile ( // volatile because output operands unused by C
-			"mov #0x2400, r1\n"
-			"br %[ntask]\n"
-			:
-			: [ntask] "r" (next_task->func)
-			);
-}
+//void transition_to(task_t *next_task)
+//{
+//	// double-buffered update to deal with power failure
+//	context_t *next_ctx;
+//	next_ctx = (curctx == &context_0 ? &context_1 : &context_0);
+//	next_ctx->task = next_task;
+//	next_ctx->needCommit = 1;
+//
+//	// atomic update of curctx
+//	curctx = next_ctx;
+//
+//	// fire task prologue
+//	task_prologue();
+//	// jump to next tast
+//	__asm__ volatile ( // volatile because output operands unused by C
+//			"mov #0x2400, r1\n"
+//			"br %[ntask]\n"
+//			:
+//			: [ntask] "r" (next_task->func)
+//			);
+//}
 
 /**
- * @brief save variable data to dirtylist
+ * @brief save info for rollback: TODO: This can get optimized
  *
  */
-void write_to_gbuf(uint8_t *data_src, uint8_t *data_dest, size_t var_size) 
+void log_backup(uint8_t *orig_addr, uint8_t *backup_addr, size_t var_size)
 {
-	// save to dirtylist
-	*(data_size_base + num_dirty_gv) = var_size;
-	*(data_dest_base + num_dirty_gv) = data_dest;
-	*(data_src_base + num_dirty_gv) = data_src;
+	// save info for rollback
+	unsigned numRollback = curctx->numRollback;
+	*(data_size_base + numRollback) = var_size;
+	*(data_dest_base + numRollback) = orig_addr;
+	*(data_src_base + numRollback) = backup_addr;
 	// increment count
-	num_dirty_gv++;
+	curctx->numRollback = numRollback + 1;
 }
 
 /** @brief Entry point upon reboot */
@@ -133,13 +123,8 @@ int main() {
 
 	// check for update
 	task_prologue();
-
-	// jump to curctx
-	__asm__ volatile ( // volatile because output operands unused by C
-			"br %[nt]\n"
-			: /* no outputs */
-			: [nt] "r" (curctx->task->func)
-			);
-
-	return 0; 
+	while (1) {
+		curctx->task();
+	}
+	return 0;
 }
