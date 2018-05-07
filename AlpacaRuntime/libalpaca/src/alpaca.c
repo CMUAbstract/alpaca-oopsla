@@ -33,14 +33,16 @@ __nv volatile unsigned num_dirty_gv=0;
 /**
  * @brief double buffered context
  */
-__nv context_t context_1 = {0};
+__nv context_t context_1 = {
+	.numRollback = 0,
+};
 /**
  * @brief double buffered context
  */
-__nv context_t context_0 = {
-	.task = _entry_task,
-	.numRollback = 0,
-};
+//__nv context_t context_0 = {
+//	.task = _entry_task,
+//	.numRollback = 0,
+//};
 /**
  * @brief current context
  */
@@ -64,9 +66,9 @@ void task_prologue()
 	// commit if needed
 	while (curctx->numRollback) {
 		unsigned rollBackIdx = curctx->numRollback - 1;
-		uint8_t* w_data_dest = *(data_dest_base + rollbackIdx);
-		uint8_t* w_data_src= *(data_src_base + rollbackIdx);
-		unsigned w_data_size = *(data_size_base + rollbackIdx);
+		uint8_t* w_data_dest = *(data_dest_base + rollBackIdx);
+		uint8_t* w_data_src= *(data_src_base + rollBackIdx);
+		unsigned w_data_size = *(data_size_base + rollBackIdx);
 		memcpy(w_data_dest, w_data_src, w_data_size);
 		curctx->numRollback--;
 	}
@@ -117,14 +119,14 @@ void log_backup(uint8_t *orig_addr, uint8_t *backup_addr, size_t var_size)
 
 /** @brief Entry point upon reboot */
 int main() {
-	_init();
+	(*_init)();
 
 	// (better alternative: transition_to(curctx->task);
 
 	// check for update
 	task_prologue();
 	while (1) {
-		curctx->task();
+		(*curctx->task)();
 	}
 	return 0;
 }

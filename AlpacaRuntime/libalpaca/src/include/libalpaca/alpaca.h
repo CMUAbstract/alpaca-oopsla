@@ -12,7 +12,7 @@ typedef struct _context_t {
 	/** @brief current running task */
 	task_func_t *task;
 	/** @brief indicate whether to jump to commit stage on power failure*/
-	unsigned numRollback = 0;
+	unsigned numRollback;
 } context_t;
 
 extern uint8_t* data_src[];
@@ -23,6 +23,8 @@ extern uint8_t** data_dest_base;
 extern unsigned* data_size_base;
 extern volatile unsigned _numBoots;
 extern context_t * volatile curctx;
+extern context_t context_0;
+extern context_t context_1;
 /** @brief LLVM generated function that clears all isDirty_ array */
 extern void clear_isDirty();
 /** @brief Function called on every reboot
@@ -31,6 +33,7 @@ extern void clear_isDirty();
  *           different app uses different GPIO.
  */
 extern void init();
+extern task_func_t* _init;
 
 void log_backup(uint8_t *data_src, uint8_t *data_dest, size_t var_size);
 
@@ -66,15 +69,19 @@ void log_backup(uint8_t *data_src, uint8_t *data_dest, size_t var_size);
  *           with a special name or to define a task pointer symbol outside
  *           of the library.
  */
-#define ENTRY_TASK(task) \
-	task_func_t* _entry_task = &task;
+#define ENTRY_TASK(_task) \
+	__nv context_t context_0 = {\
+		.task = &_task,\
+		.numRollback = 0,\
+	};
+	//task_func_t* _entry_task = &task;
 
 /** @brief Init function prototype
  *  @details We rely on the special name of this symbol to initialize the
  *           current task pointer. The entry function is defined in the user
  *           application through a macro provided by our header.
  */
-void _init();
+//void _init();
 
 /** @brief Declare the function to be called on each boot
  *  @details The same notes apply as for entry task.
