@@ -2,7 +2,3 @@
 	path = Mementos
 	url = https://github.com/spqr/mementos.git
 	branch = wolverine
-[submodule "LLVM"]
-	path = LLVM
-	url = https://github.com/CMUAbstract/alpaca-pass-oopsla
-#	url = git@github.com:CMUAbstract/alpaca-pass-oopsla.git
