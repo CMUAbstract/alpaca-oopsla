@@ -1,6 +1,5 @@
 # This is the Makefile for using the Alpaca toolchain to build an app.
 
-include $(MAKER_ROOT)/Makefile.env
 
 LOCAL_CFLAGS += -DALPACA
 
