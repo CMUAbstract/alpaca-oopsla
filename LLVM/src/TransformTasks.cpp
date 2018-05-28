@@ -1,5 +1,23 @@
 #include "include/TransformTasks.h"
 
+namespace {
+
+// Find closest debug info. Note that LLVM throws fatal error if we don't add debug info
+// to call instructions that we insert (if the parent function has debug info).
+DebugLoc findClosestDebugLoc(Instruction *instr)
+{
+	DIScope *scope = instr->getFunction()->getSubprogram();
+	Instruction *instrWithDebugLoc = instr;
+	while (!instrWithDebugLoc->getDebugLoc() && instrWithDebugLoc->getPrevNode() != NULL)
+		instrWithDebugLoc = instrWithDebugLoc->getPrevNode();
+	if (instrWithDebugLoc->getDebugLoc()) // if found an instruction with info, use that info
+		return DebugLoc(instrWithDebugLoc->getDebugLoc());
+	else // use the parent function's info (can't see any better source)
+		return DebugLoc::get(instr->getFunction()->getSubprogram()->getLine(), /* col */ 0, scope);
+}
+
+} // namespace anon
+
 Instruction* TransformTasks::insertLogBackup(Value* oldVal, Value* newVal, Instruction* insertBefore) {
 	BitCastInst* oldbc = new BitCastInst(oldVal, Type::getInt8PtrTy(m->getContext()), "", insertBefore);
 	BitCastInst* newbc = new BitCastInst(newVal, Type::getInt8PtrTy(m->getContext()), "", insertBefore);	
@@ -14,7 +32,11 @@ Instruction* TransformTasks::insertLogBackup(Value* oldVal, Value* newVal, Instr
 	args.push_back(oldbc);
 	args.push_back(newbc);
 	args.push_back(sizei);
-	CallInst* call = CallInst::Create(log_backup, ArrayRef<Value*>(args), "", insertBefore);
+
+	IRBuilder<> builder(insertBefore);
+	builder.SetCurrentDebugLocation(findClosestDebugLoc(insertBefore));
+	auto call = builder.CreateCall(log_backup, args);
+
 	return oldbc;
 }
 
