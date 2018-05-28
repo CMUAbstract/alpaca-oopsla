@@ -161,24 +161,26 @@ void AlpacaModulePass::set_clear_isDirty_function() {
  * Declare undo_log function (TODO: this can get inlined)
  */
 void AlpacaModulePass::set_ulog() {
-	Constant* c = m->getOrInsertFunction("log_backup", 
+	log_backup = cast<Function>(m->getOrInsertFunction("log_backup",
+		FunctionType::get(
 			Type::getVoidTy(m->getContext()),
-			Type::getInt8PtrTy(m->getContext()),
-			Type::getInt8PtrTy(m->getContext()),
-			Type::getInt16Ty(m->getContext()));
-	log_backup = cast<Function>(c);
+			ArrayRef<Type*>({Type::getInt8PtrTy(m->getContext()),
+							 Type::getInt8PtrTy(m->getContext()),
+							 Type::getInt16Ty(m->getContext())}),
+			/* isVarArg */ false)));
 }
 
 /*
  *	Declare custom memset function
  */
 void AlpacaModulePass::set_my_memset() {
-	Constant* c = m->getOrInsertFunction("my_memset",
+	array_memset = cast<Function>(m->getOrInsertFunction("my_memset",
+		FunctionType::get(
 			Type::getVoidTy(m->getContext()),
-			Type::getInt8PtrTy(m->getContext()),
-			Type::getInt16Ty(m->getContext()),
-			Type::getInt16Ty(m->getContext()));
-	array_memset = cast<Function>(c); 
+			ArrayRef<Type*>({Type::getInt8PtrTy(m->getContext()),
+							 Type::getInt16Ty(m->getContext()),
+							 Type::getInt16Ty(m->getContext())}),
+			/* isVarArg */ false)));
 }
 
 /*
