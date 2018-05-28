@@ -1,5 +1,4 @@
 # This is the Makefile for using the Alpaca toolchain to build an app.
-# Include it from a bld/alpaca directory in your app (built with 'maker').
 
 include $(MAKER_ROOT)/Makefile.env
 
