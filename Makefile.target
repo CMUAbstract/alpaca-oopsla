@@ -1,11 +1,10 @@
 # This is the Makefile for using the Alpaca toolchain to build an app.
 # Include it from a bld/alpaca directory in your app (built with 'maker').
 
-include $(MAKER_ROOT)/Makefile.env
-
 LOCAL_CFLAGS += -DALPACA
 
-ALPACA_LIB = $(ALPACA_ROOT)/LLVM/build/src/libAlpacaPass.so
+ALPACA_ROOT ?= $(TOOL_ROOT)/alpaca
+ALPACA_LIB = $(ALPACA_ROOT)/LLVM/bld/src/libAlpacaPass.so
 
 %.alpaca.bc : %.bc
 	$(OPT) -debug -stats -load $(ALPACA_LIB) \
@@ -14,13 +13,13 @@ ALPACA_LIB = $(ALPACA_ROOT)/LLVM/build/src/libAlpacaPass.so
 
 LINK_OBJECTS = $(OBJECTS:.o=.alpaca.bc)
 
-override DEPS += \
-	libalpaca \
+override DEPS += libalpaca
 
 DEP_ROOT_libalpaca = $(ALPACA_ROOT)/AlpacaRuntime
 
 override CLFAGS += $(LOCAL_CFLAGS) \
 
+override TOOLCHAIN = clang
 include $(MAKER_ROOT)/Makefile.clang
 
 # do not remove any intermediate artifacts

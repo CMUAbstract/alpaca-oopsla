@@ -1,14 +1,6 @@
 #include <stdarg.h>
 #include <string.h>
-#include <libio/log.h>
 #include <msp430.h>
-
-#ifndef LIBCHAIN_ENABLE_DIAGNOSTICS
-#define LIBCHAIN_PRINTF(...)
-#else
-#include <stdio.h>
-#define LIBCHAIN_PRINTF printf
-#endif
 
 #include "alpaca.h"
 
