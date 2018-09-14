@@ -17,7 +17,7 @@ override DEPS += libalpaca
 
 DEP_ROOT_libalpaca = $(ALPACA_ROOT)/AlpacaRuntime
 
-override CLFAGS += $(LOCAL_CFLAGS) \
+override CFLAGS += $(LOCAL_CFLAGS) \
 
 override TOOLCHAIN = clang
 include $(MAKER_ROOT)/Makefile.clang
