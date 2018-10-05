@@ -71,7 +71,6 @@ void AnalyzeTasks::runTaskAnalysis(Module &M) {
 		if (!F.empty()) {
 			// run only on tasks
 			if (isTask(&F)) {
-				errs() << F.getName() << "\n";
 				val_insts_map Writelist;
 				val_vec WARlist;
 				// search for WAR

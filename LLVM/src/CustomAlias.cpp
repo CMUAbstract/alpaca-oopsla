@@ -21,6 +21,9 @@ inst_vec CustomAlias::alias(Value* v, GlobalVariable* gv, Instruction* I) {
 
 			// search for any pointee that this might point to
 			val_inst_vec* pointee = getPossiblePointee(pointer, ld);
+			if (!pointee) {
+				return aliasPoints;
+			}
 			for(val_inst_vec::iterator VI = pointee->begin(); VI != pointee->end(); ++VI) {
 				if(std::find(checkedVal.begin(), checkedVal.end(), VI->first) == checkedVal.end()) {
 					checkedVal.push_back(VI->first);
