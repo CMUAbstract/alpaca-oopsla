@@ -94,19 +94,19 @@ void log_backup(uint8_t *data_src, uint8_t *data_dest, size_t var_size);
  *  I should remove it or rename it..
  *  Actually I should just remove this thing!
  */
-#define GLOBAL_SB(type, name, ...) GLOBAL_SB_(type, name, ##__VA_ARGS__, 3, 2)
-#define GLOBAL_SB_(type, name, size, n, ...) GLOBAL_SB##n(type, name, size)
-#define GLOBAL_SB2(type, name, ...) __nv type _global_ ## name
-#define GLOBAL_SB3(type, name, size) __nv type _global_ ## name[size]
+#define TASK_SHARED(type, name, ...) TASK_SHARED_(type, name, ##__VA_ARGS__, 3, 2)
+#define TASK_SHARED_(type, name, size, n, ...) TASK_SHARED##n(type, name, size)
+#define TASK_SHARED2(type, name, ...) __nv type _global_ ## name
+#define TASK_SHARED3(type, name, size) __nv type _global_ ## name[size]
 
 /**
  *  @brief way to simply reference renamed vars. I don't need it actually.
  *  I should remove it or rename it..
  *  Actually I should just remove this thing!
  */
-#define GV(type, ...) GV_(type, ##__VA_ARGS__, 2, 1)
-#define GV_(type, i, n, ...) GV##n(type, i)
-#define GV1(type, ...) _global_ ## type
-#define GV2(type, i) _global_ ## type[i]
+#define TS(type, ...) TS_(type, ##__VA_ARGS__, 2, 1)
+#define TS_(type, i, n, ...) TS##n(type, i)
+#define TS1(type, ...) _global_ ## type
+#define TS2(type, i) _global_ ## type[i]
 
 #endif // ALPACA_H

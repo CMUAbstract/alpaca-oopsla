@@ -35,19 +35,19 @@ the `TRANSITION_TO()` macro at any point:
 A variable named `var` of type `type` that is accessed by multiple tasks (and
 is known as a *protected* variable) is declared and defined in global scope with:
 
-    GLOBAL_SB(type, var);
+    TASK_SHARED(type, var);
 
 A protected array with *n* elements is declared and defined using the same macro:
 
-    GLOBAL_SB(type, var, n);
+    TASK_SHARED(type, var, n);
 
 Task code accesses protected variables through an accessor macro:
 
-    GV(var) = val;
-    type local_var = GV(var);
+    TS(var) = val;
+    type local_var = TS(var);
 
-    GV(arr, index) = val;
-    type local_var = GV(arr, index);
+    TS(arr, index) = val;
+    type local_var = TS(arr, index);
 
 Building applications with Alpaca
 ---------------------------------
