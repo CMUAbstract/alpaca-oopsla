@@ -3,10 +3,10 @@
 LOCAL_CFLAGS += -DALPACA
 
 ALPACA_ROOT ?= $(TOOL_ROOT)/alpaca
-ALPACA_LIB = $(ALPACA_ROOT)/LLVM/bld/src/libAlpacaPass.so
+ALPACA_LIB = $(ALPACA_ROOT)/LLVM/build/src/libAlpacaPass.so
 
 %.alpaca.bc : %.bc
-	$(OPT) -debug -stats -load $(ALPACA_LIB) \
+	$(OPT) -load $(ALPACA_LIB) \
 	  -alpaca \
 	  -o $@ $<
 

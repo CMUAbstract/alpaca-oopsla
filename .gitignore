@@ -22,3 +22,5 @@
 /TODO
 /vm
 /Paper/revision.tex
+bld/
+LLVM/build/
