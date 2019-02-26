@@ -15,7 +15,8 @@ uint64_t getSize(Value* val){
 }
 
 bool isTask(Function* F) {
-	return F->getName().str().find("task_") != std::string::npos;
+	return ((F->getName().str().find("task_") != std::string::npos) ||
+  (F->getName().str().find("ISR") != std::string::npos));
 }
 
 bool isArray(Value* v) {
