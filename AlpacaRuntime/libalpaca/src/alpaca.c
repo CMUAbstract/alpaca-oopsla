@@ -35,9 +35,11 @@ __nv volatile unsigned num_dirty_gv=0;
  */
 __nv context_t context_1 = {
 	.numRollback = 0,
+  .pacaCfg = 0,
 };
 /**
- * @brief double buffered context
+ * @brief double buffered context 
+ * //EKR: why does this work? How can you comment out this declaration
  */
 //__nv context_t context_0 = {
 //	.task = _entry_task,
@@ -72,6 +74,14 @@ void task_prologue()
 		memcpy(w_data_dest, w_data_src, w_data_size);
 		curctx->numRollback--;
 	}
+}
+/**
+ * @brief dummy version of transition_to so we can trick llvm
+ */
+
+//void transition_to(const char arr[]) {
+void transition_to(void * func) {
+  return;
 }
 
 /**

@@ -13,6 +13,9 @@ typedef struct _context_t {
 	task_func_t *task;
 	/** @brief indicate whether to jump to commit stage on power failure*/
 	unsigned numRollback;
+  /** @brief indicate the pacarana peripheral typestate configuration we need to
+   * jump into*/
+  unsigned pacaCfg;
 } context_t;
 
 extern uint8_t* data_src[];
@@ -46,13 +49,28 @@ void log_backup(uint8_t *data_src, uint8_t *data_dest, size_t var_size);
 #define TASK(func) \
 	void func();
 
+/** @brief dummy function 
+*/
+void transition_to(void *);
+
 #define TRANSITION_TO(next_task) \
+  transition_to(&next_task);\
 	context_t *next_ctx;\
 	next_ctx = (curctx == &context_0 ? &context_1 : &context_0);\
 	next_ctx->task = &next_task;\
 	next_ctx->numRollback = 0;\
 	curctx = next_ctx;\
-	return;
+	return; \
+
+#define PACA_TRANSITION_TO(next_task, cfg) \
+  transition_to(&next_task);\
+	context_t *next_ctx;\
+	next_ctx = (curctx == &context_0 ? &context_1 : &context_0);\
+	next_ctx->task = &next_task;\
+  next_ctx->pacaCfg = cfg; \
+	next_ctx->numRollback = 0;\
+	curctx = next_ctx;\
+	return; \
 
 // for compatibility
 #define TASK_REF(task) \
