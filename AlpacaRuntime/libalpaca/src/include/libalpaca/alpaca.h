@@ -46,7 +46,7 @@ void log_backup(uint8_t *data_src, uint8_t *data_dest, size_t var_size);
  *  @param func     Pointer to task function
  *
  */
-#define TASK(func) \
+#define TASK(func,...) \
 	void func();
 
 /** @brief dummy function 
@@ -55,6 +55,7 @@ void transition_to(void *);
 
 #define TRANSITION_TO(next_task) \
   transition_to(&next_task);\
+  P1OUT |= BIT0; P1DIR |= BIT0; P1OUT &= ~BIT0; \
 	context_t *next_ctx;\
 	next_ctx = (curctx == &context_0 ? &context_1 : &context_0);\
 	next_ctx->task = &next_task;\
