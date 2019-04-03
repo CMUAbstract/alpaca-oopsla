@@ -55,7 +55,6 @@ void transition_to(void *);
 
 #define TRANSITION_TO(next_task) \
   transition_to(&next_task);\
-  P1OUT |= BIT0; P1DIR |= BIT0; P1OUT &= ~BIT0; \
 	context_t *next_ctx;\
 	next_ctx = (curctx == &context_0 ? &context_1 : &context_0);\
 	next_ctx->task = &next_task;\
